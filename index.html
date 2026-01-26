@@ -114,6 +114,13 @@
       transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
     }
 
+    .toggle-edit[data-active="true"] {
+      background: radial-gradient(circle at top left, #ffb74d, #ff7043);
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 224, 178, 0.7);
+    }
+
     .toggle-edit:hover {
       transform: translateY(-1px);
       filter: brightness(1.05);
@@ -127,13 +134,6 @@
       box-shadow:
         0 4px 10px rgba(0, 0, 0, 0.9),
         0 0 0 1px rgba(174, 213, 255, 0.7);
-    }
-
-    .toggle-edit[data-active="true"] {
-      background: radial-gradient(circle at top left, #ffb74d, #ff7043);
-      box-shadow:
-        0 8px 18px rgba(0, 0, 0, 0.8),
-        0 0 0 1px rgba(255, 224, 178, 0.7);
     }
 
     .deck {
@@ -306,60 +306,49 @@
     </div>
   </div>
 
-  <!-- Firebase SDK (compat 버전, 브라우저에서 바로 사용 용도) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <script>
-    // ===== 설정 상수들 =====
+    // ==============================
+    // 1) 설정 상수들
+    // ==============================
     const SLOT_COUNT = 10;
     const STORAGE_KEY = "event-link-deck-v1";
     const EDIT_PASSWORD = "0000"; // 👉 여기 원하는 비밀번호로 변경
-    const DECK_PATH = "/decks/default"; // 👉 행사별로 구분하고 싶으면 /decks/eventA 등으로 변경
+    const DECK_PATH = "/decks/default";
 
     let buttons = Array.from({ length: SLOT_COUNT }, () => ({ label: "", url: "" }));
     let firebaseDb = null;
-    let remoteReady = false;
 
-    // 👉 여기에 firebaseConfig 붙여넣기 (console에서 복사한 그대로)
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+    // 👉 여기 firebaseConfig 붙여넣기 (콘솔에서 복사한 그대로)
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBZw0PMW1y0Kp44oeNbkkAomUbJcw9EmdA",
+  authDomain: "event-deck-bearbit.firebaseapp.com",
+  databaseURL: "https://event-deck-bearbit-default-rtdb.firebaseio.com",
+  projectId: "event-deck-bearbit",
+  storageBucket: "event-deck-bearbit.firebasestorage.app",
+  messagingSenderId: "428108596010",
+  appId: "1:428108596010:web:f17e7e1e35ebf53c165453",
+  measurementId: "G-6SJSKE3G9B"
+};
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBZw0PMW1y0Kp44oeNbkkAomUbJcw9EmdA",
-    authDomain: "event-deck-bearbit.firebaseapp.com",
-    databaseURL: "https://event-deck-bearbit-default-rtdb.firebaseio.com",
-    projectId: "event-deck-bearbit",
-    storageBucket: "event-deck-bearbit.firebasestorage.app",
-    messagingSenderId: "428108596010",
-    appId: "1:428108596010:web:f17e7e1e35ebf53c165453",
-    measurementId: "G-6SJSKE3G9B"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
-    // ===== 공통 유틸 =====
+    // ==============================
+    // 2) 공통 유틸
+    // ==============================
     function normalizeButtons(raw) {
       if (!Array.isArray(raw)) {
         return Array.from({ length: SLOT_COUNT }, () => ({ label: "", url: "" }));
       }
-      const arr = Array.from({ length: SLOT_COUNT }, (_, i) => {
+      return Array.from({ length: SLOT_COUNT }, (_, i) => {
         const b = raw[i] || {};
         return {
           label: (b.label || "").toString(),
           url: (b.url || "").toString(),
         };
       });
-      return arr;
     }
 
     function loadButtonsLocal() {
@@ -389,12 +378,14 @@
       if (el) el.textContent = text;
     }
 
-    // ===== Firebase 초기화 & 동기화 =====
+    // ==============================
+    // 3) Firebase 초기화 & 동기화
+    // ==============================
     function initFirebaseAndSync() {
       try {
         if (typeof firebaseConfig === "undefined") {
           console.warn("firebaseConfig가 정의되어 있지 않습니다. 공유 기능이 비활성화됩니다.");
-          setRemoteStatus("동기화: 비활성화 (firebaseConfig 필요)");
+          setRemoteStatus("동기화: 비활성화 (firebaseConfig 없음, 로컬 모드)");
           return;
         }
 
@@ -412,12 +403,9 @@
               buttons = normalizeButtons(val);
               saveButtonsLocal(buttons);
               renderButtons(buttons);
-              remoteReady = true;
               setRemoteStatus("동기화: 서버와 연결됨");
             } else {
-              // 서버에 아무 데이터도 없는 첫 실행 → 현재 로컬 상태를 서버로 올려줌
               saveButtonsRemote();
-              remoteReady = true;
               setRemoteStatus("동기화: 초기 데이터 업로드 완료");
             }
           },
@@ -428,7 +416,7 @@
         );
       } catch (e) {
         console.error("Firebase init error", e);
-        setRemoteStatus("동기화: 초기화 실패");
+        setRemoteStatus("동기화: 초기화 실패 (콘솔 확인)");
       }
     }
 
@@ -446,7 +434,9 @@
         });
     }
 
-    // ===== UI 렌더링 =====
+    // ==============================
+    // 4) UI 렌더링
+    // ==============================
     function renderButtons(btns) {
       const deck = document.getElementById("deck");
       deck.innerHTML = "";
@@ -489,7 +479,7 @@
     function attachButtonHandlers(el) {
       const app = document.getElementById("app");
 
-      function onClick() {
+      el.addEventListener("click", () => {
         const index = Number(el.dataset.index);
         const isEditMode = app.dataset.editMode === "true";
 
@@ -499,13 +489,13 @@
           const current = buttons[index];
 
           const newLabel = prompt(
-            `버튼 이름을 입력하세요.\n(예: 큐시트, 메인 기획안, 유튜브 라이브 등)`,
+            "버튼 이름을 입력하세요.\n(예: 큐시트, 메인 기획안, 유튜브 라이브 등)",
             current.label || ""
           );
           if (newLabel === null) return;
 
           const newUrl = prompt(
-            `이 버튼이 연결될 링크(URL)를 입력하세요.\n(예: https:// 또는 http:// 로 시작하는 주소)`,
+            "이 버튼이 연결될 링크(URL)를 입력하세요.\n(예: https:// 또는 http:// 로 시작하는 주소)",
             current.url || ""
           );
           if (newUrl === null) return;
@@ -530,12 +520,12 @@
             alert("아직 설정되지 않은 버튼입니다.\n편집 모드를 켠 후 버튼을 눌러 링크를 설정하세요.");
           }
         }
-      }
-
-      el.addEventListener("click", onClick);
+      });
     }
 
-    // ===== 편집 모드 토글 (비밀번호 포함) =====
+    // ==============================
+    // 5) 편집 모드 토글 (비밀번호)
+    // ==============================
     function setupEditToggle() {
       const toggle = document.getElementById("toggleEdit");
       const app = document.getElementById("app");
@@ -543,14 +533,9 @@
       toggle.addEventListener("click", () => {
         const isActive = toggle.dataset.active === "true";
 
-        // 꺼진 상태에서 켜려고 할 때만 비밀번호 확인
         if (!isActive) {
           const input = prompt("편집 모드 비밀번호를 입력하세요:");
-
-          if (input === null) {
-            return; // 취소
-          }
-
+          if (input === null) return;
           if (input !== EDIT_PASSWORD) {
             alert("비밀번호가 올바르지 않습니다.");
             return;
@@ -564,13 +549,14 @@
       });
     }
 
-    // ===== 초기 실행 =====
+    // ==============================
+    // 6) 초기 실행
+    // ==============================
     (function init() {
-      // 우선 로컬 저장된 값으로 빠르게 렌더링
-      buttons = loadButtonsLocal();
+      buttons = loadButtonsLocal();   // 우선 로컬 값으로라도 버튼 표시
       renderButtons(buttons);
       setupEditToggle();
-      initFirebaseAndSync();
+      initFirebaseAndSync();          // firebaseConfig 있으면 공유 기능 활성화
     })();
   </script>
 </body>
