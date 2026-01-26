@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>행사 컨트롤 패널 v3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      /* 기본 테마 값 (dark-blue) */
+      --bg: #05070b;
+      --card-bg: #151821;
+      --accent: #3ea6ff;
+      --accent-soft: #1b2738;
+      --text-main: #f8f9ff;
+      --text-sub: #99a1b8;
+    }
+
+    /* purple 테마 */
+    body[data-theme="purple"] {
+      --bg: #070312;
+      --card-bg: #1b1026;
+      --accent: #ff8bd5;
+      --accent-soft: #261634;
+      --text-main: #fff5ff;
+      --text-sub: #bba4d3;
+    }
+
+    /* amber 테마 */
+    body[data-theme="amber"] {
+      --bg: #050608;
+      --card-bg: #15171c;
+      --accent: #ffcc33;
+      --accent-soft: #262933;
+      --text-main: #fefefe;
+      --text-sub: #9fa5b5;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, var(--card-bg) 0, var(--bg) 55%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(1100px, 100vw - 32px);
+      padding: 20px;
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.7));
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(18px);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(62, 166, 255, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(62, 166, 255, 0.65);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    body[data-theme="purple"] .title-badge {
+      background: rgba(255, 139, 213, 0.12);
+      color: #ff8bd5;
+      border-color: rgba(255, 139, 213, 0.75);
+    }
+
+    body[data-theme="amber"] .title-badge {
+      background: rgba(255, 204, 51, 0.12);
+      color: #ffcc33;
+      border-color: rgba(255, 204, 51, 0.8);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--text-sub);
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      white-space: nowrap;
+    }
+
+    .toggle-edit {
+      cursor: pointer;
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-main);
+      background: radial-gradient(circle at top left, var(--accent), var(--accent-soft));
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(174, 213, 255, 0.4);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .toggle-edit[data-active="true"] {
+      background: radial-gradient(circle at top left, #ffb74d, #ff7043);
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 224, 178, 0.7);
+    }
+
+    .toggle-edit:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow:
+        0 11px 24px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(174, 213, 255, 0.6);
+    }
+
+    .toggle-edit:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(174, 213, 255, 0.7);
+    }
+
+    .theme-select-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-sub);
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      white-space: nowrap;
+    }
+
+    .theme-select-wrapper select {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 11px;
+      outline: none;
+      padding: 2px 4px;
+      cursor: pointer;
+    }
+
+    .theme-select-wrapper select:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .deck {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 800px) {
+      .deck {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .deck {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .deck-button {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22), transparent 55%),
+                  radial-gradient(circle at bottom, var(--accent), rgba(5, 7, 11, 1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow:
+        0 14px 0 rgba(0, 0, 0, 0.9),
+        0 18px 28px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      transform: translateY(0);
+      transition:
+        transform 0.08s ease,
+        box-shadow 0.08s ease,
+        filter 0.08s ease,
+        background 0.12s ease;
+      overflow: hidden;
+    }
+
+    .deck-button-inner {
+      width: 82%;
+      height: 82%;
+      border-radius: 18px;
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.9));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    .deck-button-label {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.3;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+      word-break: keep-all;
+    }
+
+    .deck-button-empty .deck-button-label {
+      font-size: 12px;
+      color: rgba(240, 240, 255, 0.7);
+    }
+
+    .deck-button[data-has-url="false"] {
+      background: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.12), transparent 55%),
+                  radial-gradient(circle at bottom, rgba(63, 81, 181, 0.5), rgba(5, 7, 11, 1));
+    }
+
+    .deck-button-pressed {
+      transform: translateY(6px) scale(0.97);
+      box-shadow:
+        0 5px 0 rgba(0, 0, 0, 0.95),
+        0 10px 18px rgba(0, 0, 0, 1),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+      filter: brightness(0.98);
+    }
+
+    .deck-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      pointer-events: none;
+    }
+
+    .deck-button-edit-hint {
+      position: absolute;
+      top: 6px;
+      right: 7px;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.68);
+      color: var(--text-sub);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      pointer-events: none;
+    }
+
+    .app[data-edit-mode="true"] .deck-button-edit-hint {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .status-line {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-sub);
+      opacity: 0.9;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-line span {
+      white-space: nowrap;
+    }
+
+    .status-line div {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-remote {
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body data-theme="dark-blue">
+  <div class="app" id="app" data-edit-mode="false">
+    <div class="header">
+      <div class="title-block">
+        <div class="title">
+          행사 컨트롤 패널 v3
+          <span class="title-badge">SHARED LINK DECK</span>
+        </div>
+        <div class="subtitle">
+          모든 기기에서 동일한 버튼 구성과 테마를 공유합니다. (Firebase Realtime DB 기반)
+        </div>
+      </div>
+      <div class="controls">
+        <div class="pill">최대 10개의 버튼 · 실시간 동기화</div>
+
+        <div class="theme-select-wrapper">
+          <span>테마</span>
+          <select id="themeSelect" disabled>
+            <option value="dark-blue">Dark Blue</option>
+            <option value="purple">Purple</option>
+            <option value="amber">Amber</option>
+          </select>
+        </div>
+
+        <button class="toggle-edit" id="toggleEdit" data-active="false">
+          <span>편집 모드 켜기</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="status-line">
+      <div>
+        <span>💡 편집 모드: 버튼과 테마를 설정하세요. (비밀번호 보호)</span>
+      </div>
+      <div>
+        <span>⌘/Ctrl + D → 북마크 추천</span>
+        <span class="status-remote" id="statusRemote">동기화: 초기화 중…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 클릭 사운드 (필요 없으면 통째로 지워도 됨, click.mp3 파일이 있을 때만 동작) -->
+
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <script>
+    // ==============================
+    // 1) 설정 상수들
+    // ==============================
+    const SLOT_COUNT = 10;
+    const STORAGE_KEY = "event-link-deck-v2"; // v2와 구분용
+    const EDIT_PASSWORD = "5464"; // 👉 여기 원하는 비밀번호로 변경
+    const DECK_PATH = "/decks/default";
+
+    const THEME_PRESETS = [
+      { id: "dark-blue", label: "Dark Blue" },
+      { id: "purple", label: "Purple" },
+      { id: "amber", label: "Amber" },
+    ];
+
+    let deckConfig = {
+      buttons: Array.from({ length: SLOT_COUNT }, () => ({ label: "", url: "" })),
+      theme: "dark-blue",
+    };
+
+    let firebaseDb = null;
+
+    // 👉 여기 firebaseConfig 붙여넣기 (콘솔에서 복사한 그대로)
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBZw0PMW1y0Kp44oeNbkkAomUbJcw9EmdA",
+  authDomain: "event-deck-bearbit.firebaseapp.com",
+  databaseURL: "https://event-deck-bearbit-default-rtdb.firebaseio.com",
+  projectId: "event-deck-bearbit",
+  storageBucket: "event-deck-bearbit.firebasestorage.app",
+  messagingSenderId: "428108596010",
+  appId: "1:428108596010:web:f17e7e1e35ebf53c165453",
+  measurementId: "G-6SJSKE3G9B"
+};
+
+    // ==============================
+    // 2) 공통 유틸
+    // ==============================
+    function normalizeButtons(raw) {
+      if (!Array.isArray(raw)) {
+        return Array.from({ length: SLOT_COUNT }, () => ({ label: "", url: "" }));
+      }
+      return Array.from({ length: SLOT_COUNT }, (_, i) => {
+        const b = raw[i] || {};
+        return {
+          label: (b.label || "").toString(),
+          url: (b.url || "").toString(),
+        };
+      });
+    }
+
+    function applyTheme(themeId) {
+      const body = document.body;
+      body.dataset.theme = themeId;
+      const themeSelect = document.getElementById("themeSelect");
+      if (themeSelect) {
+        themeSelect.value = themeId;
+      }
+    }
+
+    function loadDeckLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          // v1 형태(버튼 배열만)에서 넘어올 수도 있으니 fallback
+          return {
+            buttons: Array.from({ length: SLOT_COUNT }, () => ({ label: "", url: "" })),
+            theme: "dark-blue",
+          };
+        }
+        const parsed = JSON.parse(raw);
+
+        // 이전 버전: 배열만 있던 경우
+        if (Array.isArray(parsed)) {
+          return {
+            buttons: normalizeButtons(parsed),
+            theme: "dark-blue",
+          };
+        }
+
+        // 새 버전: { buttons, theme }
+        return {
+          buttons: normalizeButtons(parsed.buttons || []),
+          theme: parsed.theme || "dark-blue",
+        };
+      } catch (e) {
+        console.error("local load error", e);
+        return {
+          buttons: Array.from({ length: SLOT_COUNT }, () => ({ label: "", url: "" })),
+          theme: "dark-blue",
+        };
+      }
+    }
+
+    function saveDeckLocal(config) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      } catch (e) {
+        console.error("local save error", e);
+      }
+    }
+
+    function setRemoteStatus(text) {
+      const el = document.getElementById("statusRemote");
+      if (el) el.textContent = text;
+    }
+
+    function playClickSound() {
+      const audio = document.getElementById("clickSound");
+      if (!audio) return;
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      } catch (e) {
+        console.warn("sound error", e);
+      }
+    }
+
+    // ==============================
+    // 3) Firebase 초기화 & 동기화
+    // ==============================
+    function initFirebaseAndSync() {
+      try {
+        if (typeof firebaseConfig === "undefined") {
+          console.warn("firebaseConfig가 정의되어 있지 않습니다. 공유 기능이 비활성화됩니다.");
+          setRemoteStatus("동기화: 비활성화 (firebaseConfig 없음, 로컬 모드)");
+          return;
+        }
+
+        firebase.initializeApp(firebaseConfig);
+        firebaseDb = firebase.database();
+        const ref = firebaseDb.ref(DECK_PATH);
+
+        setRemoteStatus("동기화: 서버에서 불러오는 중…");
+
+        ref.on(
+          "value",
+          (snapshot) => {
+            const val = snapshot.val();
+            if (val) {
+              // 구버전: 배열만 저장된 경우
+              if (Array.isArray(val)) {
+                deckConfig = {
+                  buttons: normalizeButtons(val),
+                  theme: "dark-blue",
+                };
+              } else {
+                deckConfig = {
+                  buttons: normalizeButtons(val.buttons || []),
+                  theme: val.theme || "dark-blue",
+                };
+              }
+              saveDeckLocal(deckConfig);
+              renderButtons(deckConfig.buttons);
+              applyTheme(deckConfig.theme);
+              setRemoteStatus("동기화: 서버와 연결됨");
+            } else {
+              // 서버에 아무 데이터도 없는 첫 실행 → 현재 로컬 상태를 업로드
+              saveDeckRemote();
+              setRemoteStatus("동기화: 초기 데이터 업로드 완료");
+            }
+          },
+          (error) => {
+            console.error("Firebase read error", error);
+            setRemoteStatus("동기화: 오류 (콘솔 확인)");
+          }
+        );
+      } catch (e) {
+        console.error("Firebase init error", e);
+        setRemoteStatus("동기화: 초기화 실패 (콘솔 확인)");
+      }
+    }
+
+    function saveDeckRemote() {
+      if (!firebaseDb) return;
+      const ref = firebaseDb.ref(DECK_PATH);
+      ref
+        .set(deckConfig)
+        .then(() => {
+          setRemoteStatus("동기화: 최신 상태 저장됨");
+        })
+        .catch((err) => {
+          console.error("remote save error", err);
+          setRemoteStatus("동기화: 저장 오류");
+        });
+    }
+
+    // ==============================
+    // 4) UI 렌더링
+    // ==============================
+    function renderButtons(btns) {
+      const deck = document.getElementById("deck");
+      deck.innerHTML = "";
+
+      btns.forEach((btn, index) => {
+        const hasUrl = Boolean(btn.url && btn.url.trim() !== "");
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "deck-button" + (!hasUrl ? " deck-button-empty" : "");
+        wrapper.dataset.index = index.toString();
+        wrapper.dataset.hasUrl = hasUrl ? "true" : "false";
+
+        const editHint = document.createElement("div");
+        editHint.className = "deck-button-edit-hint";
+        editHint.textContent = "편집";
+
+        const inner = document.createElement("div");
+        inner.className = "deck-button-inner";
+
+        const label = document.createElement("div");
+        label.className = "deck-button-label";
+        label.textContent = btn.label.trim() ? btn.label : "빈 슬롯";
+
+        inner.appendChild(label);
+        wrapper.appendChild(inner);
+        wrapper.appendChild(editHint);
+        deck.appendChild(wrapper);
+
+        attachButtonHandlers(wrapper);
+      });
+    }
+
+    function pressAnimation(el) {
+      el.classList.add("deck-button-pressed");
+      setTimeout(() => {
+        el.classList.remove("deck-button-pressed");
+      }, 90);
+    }
+
+    function attachButtonHandlers(el) {
+      const app = document.getElementById("app");
+
+      el.addEventListener("click", () => {
+        const index = Number(el.dataset.index);
+        const isEditMode = app.dataset.editMode === "true";
+
+        pressAnimation(el);
+        playClickSound();
+
+        if (isEditMode) {
+          const current = deckConfig.buttons[index];
+
+          const newLabel = prompt(
+            "버튼 이름을 입력하세요.\n(예: 큐시트, 메인 기획안, 유튜브 라이브 등)",
+            current.label || ""
+          );
+          if (newLabel === null) return;
+
+          const newUrl = prompt(
+            "이 버튼이 연결될 링크(URL)를 입력하세요.\n(예: https:// 또는 http:// 로 시작하는 주소)",
+            current.url || ""
+          );
+          if (newUrl === null) return;
+
+          deckConfig.buttons[index] = {
+            label: (newLabel || "").trim(),
+            url: (newUrl || "").trim(),
+          };
+
+          saveDeckLocal(deckConfig);
+          saveDeckRemote();
+          renderButtons(deckConfig.buttons);
+        } else {
+          const current = deckConfig.buttons[index];
+          if (current.url && current.url.trim() !== "") {
+            let urlToOpen = current.url.trim();
+            if (!/^https?:\/\//i.test(urlToOpen)) {
+              urlToOpen = "https://" + urlToOpen;
+            }
+            window.open(urlToOpen, "_blank", "noopener");
+          } else {
+            alert("아직 설정되지 않은 버튼입니다.\n편집 모드를 켠 후 버튼을 눌러 링크를 설정하세요.");
+          }
+        }
+      });
+    }
+
+    // ==============================
+    // 5) 편집 모드 & 테마 셀렉트
+    // ==============================
+    function setupEditToggle() {
+      const toggle = document.getElementById("toggleEdit");
+      const app = document.getElementById("app");
+      const themeSelect = document.getElementById("themeSelect");
+
+      toggle.addEventListener("click", () => {
+        const isActive = toggle.dataset.active === "true";
+
+        if (!isActive) {
+          const input = prompt("편집 모드 비밀번호를 입력하세요:");
+          if (input === null) return;
+          if (input !== EDIT_PASSWORD) {
+            alert("비밀번호가 올바르지 않습니다.");
+            return;
+          }
+        }
+
+        const next = !isActive;
+        toggle.dataset.active = next ? "true" : "false";
+        app.dataset.editMode = next ? "true" : "false";
+        toggle.querySelector("span").textContent = next ? "편집 모드 끄기" : "편집 모드 켜기";
+
+        // 편집 모드일 때만 테마 셀렉트 활성화
+        if (themeSelect) {
+          themeSelect.disabled = !next;
+        }
+      });
+    }
+
+    function setupThemeSelect() {
+      const themeSelect = document.getElementById("themeSelect");
+      const app = document.getElementById("app");
+      if (!themeSelect) return;
+
+      // 기본 값 세팅
+      themeSelect.value = deckConfig.theme;
+
+      themeSelect.addEventListener("change", () => {
+        const isEditMode = app.dataset.editMode === "true";
+        if (!isEditMode) {
+          // 편집 모드가 아니면 변경 불가
+          themeSelect.value = deckConfig.theme;
+          return;
+        }
+
+        const newTheme = themeSelect.value;
+        deckConfig.theme = newTheme;
+        applyTheme(newTheme);
+        saveDeckLocal(deckConfig);
+        saveDeckRemote();
+      });
+    }
+
+    // ==============================
+    // 6) 초기 실행
+    // ==============================
+    (function init() {
+      deckConfig = loadDeckLocal();         // 로컬 값 먼저 불러오기
+      renderButtons(deckConfig.buttons);
+      applyTheme(deckConfig.theme);
+      setupEditToggle();
+      setupThemeSelect();
+      initFirebaseAndSync();                // firebaseConfig 있으면 공유 기능 활성화
+    })();
+  </script>
+</body>
+</html>
