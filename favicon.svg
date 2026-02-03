@@ -1,0 +1,60 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#151821"/>
+      <stop offset="100%" stop-color="#05070b"/>
+    </linearGradient>
+    <linearGradient id="btn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3ea6ff"/>
+      <stop offset="100%" stop-color="#1b2738"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 바깥 카드 -->
+  <rect x="32" y="32" width="448" height="448" rx="96" ry="96"
+        fill="url(#bg)"
+        stroke="#222733"
+        stroke-width="8" />
+
+  <!-- 살짝 빛나는 테두리 -->
+  <rect x="40" y="40" width="432" height="432" rx="88" ry="88"
+        fill="none"
+        stroke="rgba(255,255,255,0.05)"
+        stroke-width="4" />
+
+  <!-- 3x3 버튼 그리드 -->
+  <!-- 버튼 크기와 간격 설정 -->
+  <!-- 한 줄에 3개, 전체가 중앙에 오도록 배치 -->
+  <!-- 중심 기준 3x3 -->
+  <!-- 버튼 하나: 88x88, 간격 18 정도 -->
+  <g transform="translate(0,0)">
+    <!-- 행 1 -->
+    <rect x="122" y="122" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+    <rect x="212" y="122" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+    <rect x="302" y="122" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+
+    <!-- 행 2 -->
+    <rect x="122" y="212" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+    <rect x="212" y="212" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+    <rect x="302" y="212" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+
+    <!-- 행 3 -->
+    <rect x="122" y="302" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+    <rect x="212" y="302" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+    <rect x="302" y="302" width="88" height="88" rx="24"
+          fill="url(#btn)" />
+  </g>
+
+  <!-- 약간의 광택 효과 -->
+  <ellipse cx="256" cy="140" rx="180" ry="70"
+           fill="rgba(255,255,255,0.12)" />
+</svg>
